@@ -1,7 +1,10 @@
 // src/components/ProductCard.jsx
+import { Link } from 'react-router-dom'; // 1. Import Link
 
 function ProductCard({ product }) {
-    return (
+  return (
+    // 2. Wrap the whole div in a Link component
+    <Link to={`/product/${product.id}`}>
       <div className="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
         {/* Image Placeholder */}
         <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
@@ -13,7 +16,8 @@ function ProductCard({ product }) {
           <p className="text-gray-700 mt-2">₹{product.price}</p>
         </div>
       </div>
-    );
-  }
-  
-  export default ProductCard;
+    </Link>
+  );
+}
+
+export default ProductCard;

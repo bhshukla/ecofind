@@ -1,22 +1,36 @@
-// src/pages/LoginPage.jsx
+// src/pages/SignUpPage.jsx
 import { useState } from 'react';
-import { Link } from 'react-router-dom'; // 1. Import the Link component
+import { Link } from 'react-router-dom'; // Import Link
 
-function LoginPage() {
+function SignUpPage() {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log('Logging in with:', { email, password });
+    console.log('Signing up with:', { username, email, password });
+    // We will add the backend API call here later.
   };
 
   return (
     <div className="bg-gray-100 min-h-screen flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center">Create Account</h1>
         <form onSubmit={handleSubmit}>
-          {/* Email and Password inputs are here, no changes needed */}
+          <div className="mb-4">
+            <label htmlFor="username" className="block text-gray-700 font-bold mb-2">
+              Username
+            </label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+          </div>
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-700 font-bold mb-2">
               Email Address
@@ -47,15 +61,13 @@ function LoginPage() {
             type="submit"
             className="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 transition-colors"
           >
-            Login
+            Sign Up
           </button>
         </form>
-
-        {/* 2. Add this new section below the form */}
         <p className="text-center text-gray-600 mt-4">
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-green-500 hover:underline">
-            Sign Up
+          Already have an account?{' '}
+          <Link to="/login" className="text-green-500 hover:underline">
+            Login
           </Link>
         </p>
       </div>
@@ -63,4 +75,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default SignUpPage;
