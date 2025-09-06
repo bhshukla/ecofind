@@ -1,6 +1,8 @@
 const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const cors = require('cors'); // <--- ADDED THIS LINE
 
 const app = express();
 const PORT = 3001;
@@ -41,10 +43,16 @@ const createTables = async () => {
     }
 };
 
-// Middleware to parse JSON bodies
+// --- Middleware ---
 app.use(express.json());
+app.use(cors()); // <--- ADDED THIS LINE
 
-// --- API Endpoints (Updated for PostgreSQL) ---
+// --- API Endpoints ---
+
+// --- Welcome Route (To check if the server is alive)
+app.get('/', (req, res) => {
+    res.send('EcoFinds Backend API is running!');
+});
 
 // POST /api/register
 app.post('/api/register', async (req, res) => {
@@ -61,7 +69,7 @@ app.post('/api/register', async (req, res) => {
         );
         res.status(201).json({ message: 'User registered successfully!', userId: result.rows[0].id });
     } catch (err) {
-        if (err.code === '23505') { // Unique violation
+        if (err.code === '23505') {
             return res.status(400).json({ error: 'Username or email already exists.' });
         }
         res.status(500).json({ error: 'Failed to register user.' });
@@ -78,24 +86,35 @@ app.post('/api/login', async (req, res) => {
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         const user = result.rows[0];
         if (!user) {
-            return res.status(400).json({ error: 'Invalid credentials.' });
+            return res.status(401).json({ error: 'Invalid credentials.' });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ error: 'Invalid credentials.' });
+            return res.status(401).json({ error: 'Invalid credentials.' });
         }
-        res.status(200).json({
-            message: 'Login successful!',
-            user: { id: user.id, username: user.username, email: user.email }
-        });
+
+        const payload = {
+            user: {
+                id: user.id
+            }
+        };
+
+        jwt.sign(
+            payload,
+            'yourSuperSecretKey',
+            { expiresIn: '1h' },
+            (err, token) => {
+                if (err) throw err;
+                res.json({ token });
+            }
+        );
+
     } catch (err) {
         res.status(500).json({ error: 'Server error during login.' });
     }
 });
 
-// --- PRODUCT ENDPOINTS ---
-
-// GET /api/products - Get all product listings
+// GET /api/products
 app.get('/api/products', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM products ORDER BY id DESC');
@@ -105,7 +124,7 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// POST /api/products - Create a new product listing
+// POST /api/products
 app.post('/api/products', async (req, res) => {
     const { title, description, category, price, image_url, user_id } = req.body;
     if (!title || !category || !price || !user_id) {
@@ -126,7 +145,7 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
-// GET /api/products/:id - Get a single product by ID
+// GET /api/products/:id
 app.get('/api/products/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -141,7 +160,7 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-// PUT /api/products/:id - Update a product by ID --- NEWLY ADDED ---
+// PUT /api/products/:id
 app.put('/api/products/:id', async (req, res) => {
     const { id } = req.params;
     const { title, description, category, price, image_url } = req.body;
@@ -163,7 +182,7 @@ app.put('/api/products/:id', async (req, res) => {
     }
 });
 
-// DELETE /api/products/:id - Delete a product by ID --- NEWLY ADDED ---
+// DELETE /api/products/:id
 app.delete('/api/products/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -171,7 +190,7 @@ app.delete('/api/products/:id', async (req, res) => {
         if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Product not found.' });
         }
-        res.status(204).send(); // 204 No Content
+        res.status(204).send();
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Failed to delete product.' });
@@ -181,5 +200,5 @@ app.delete('/api/products/:id', async (req, res) => {
 // --- Start Server ---
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-    createTables(); // Create tables when the server starts
+    createTables();
 });
