@@ -5,13 +5,16 @@ import App from './App.jsx';
 import './index.css';
 import { BrowserRouter } from 'react-router-dom';
 import { CartProvider } from './context/CartContext'; // Make sure this is imported
+import { AuthProvider } from './context/AuthContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <CartProvider> {/* This wrapper is the fix */}
-        <App />
-      </CartProvider>
+      <AuthProvider> {/* Add AuthProvider here */}
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );

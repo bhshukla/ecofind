@@ -1,5 +1,7 @@
 // src/App.jsx
 import { Routes, Route } from 'react-router-dom';
+import DashboardPage from './pages/DashboardPage';
+import CheckoutPage from './pages/CheckoutPage';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -22,6 +24,8 @@ function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/my-listings" element={<MyListingsPage />} />
           <Route path="/add-product" element={<AddProductPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
         </Routes>
       </main>
     </div>
