@@ -126,13 +126,12 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
-// GET /api/products/:id - Get a single product by ID --- NEWLY ADDED ---
+// GET /api/products/:id - Get a single product by ID
 app.get('/api/products/:id', async (req, res) => {
-    const { id } = req.params; // Get the ID from the URL parameter
+    const { id } = req.params;
     try {
         const result = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
         const product = result.rows[0];
-
         if (!product) {
             return res.status(404).json({ error: 'Product not found.' });
         }
@@ -142,6 +141,42 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
+// PUT /api/products/:id - Update a product by ID --- NEWLY ADDED ---
+app.put('/api/products/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, description, category, price, image_url } = req.body;
+    if (!title || !category || !price) {
+        return res.status(400).json({ error: 'Please provide title, category, and price.' });
+    }
+    try {
+        const result = await pool.query(
+            'UPDATE products SET title = $1, description = $2, category = $3, price = $4, image_url = $5 WHERE id = $6 RETURNING *',
+            [title, description, category, price, image_url, id]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Product not found.' });
+        }
+        res.status(200).json({ message: 'Product updated successfully!', product: result.rows[0] });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Failed to update product.' });
+    }
+});
+
+// DELETE /api/products/:id - Delete a product by ID --- NEWLY ADDED ---
+app.delete('/api/products/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM products WHERE id = $1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Product not found.' });
+        }
+        res.status(204).send(); // 204 No Content
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Failed to delete product.' });
+    }
+});
 
 // --- Start Server ---
 app.listen(PORT, () => {
